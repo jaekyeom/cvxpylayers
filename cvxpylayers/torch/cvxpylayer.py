@@ -285,7 +285,7 @@ def _CvxpyLayerFn(
             # compute solution and derivative function
             start = time.time()
             try:
-                xs, _, _, _, ctx.DT_batch = diffcp.solve_and_derivative_batch(
+                xs, ys, ss, _, ctx.DT_batch = diffcp.solve_and_derivative_batch(
                     As, bs, cs, cone_dicts, **solver_args)
             except diffcp.SolverError as e:
                 print(
@@ -294,6 +294,10 @@ def _CvxpyLayerFn(
                     "solver iterations.")
                 raise e
             info['solve_time'] = time.time() - start
+
+            # no need to convert to tensors, as they will be used as-is.
+            # later this can be passed as `warm_starts` using `solver_args`.
+            info['warm_starts_info'] = list(zip(xs, ys, ss))
 
             # extract solutions and append along batch dimension
             sol = [[] for _ in range(len(variables))]
